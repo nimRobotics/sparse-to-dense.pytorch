@@ -30,7 +30,7 @@ class NYUDataset(MyDataloader):
 
         return rgb_np, depth_np
 
-    def val_transform(self, rgb, depth):
+    def val_transform(self, rgb, depth, spdepth):
         depth_np = depth
         transform = transforms.Compose([
             transforms.Resize(240.0 / iheight),
@@ -39,5 +39,6 @@ class NYUDataset(MyDataloader):
         rgb_np = transform(rgb)
         rgb_np = np.asfarray(rgb_np, dtype='float') / 255
         depth_np = transform(depth_np)
+        spdepth_np = transform(spdepth)
 
-        return rgb_np, depth_np
+        return rgb_np, depth_np, spdepth_np

@@ -34,9 +34,14 @@ def make_dataset(dir, class_to_idx):
 def h5_loader(path):
     h5f = h5py.File(path, "r")
     rgb = np.array(h5f['rgb'])
-    rgb = np.transpose(rgb, (1, 2, 0))
+    # rgb = np.transpose(rgb, (1, 2, 0))
     depth = np.array(h5f['depth'])
-    return rgb, depth
+    spdepth = np.array(h5f['sparse'])
+
+    print("rgb",rgb.shape)
+    print("depth",depth.shape)
+
+    return rgb, depth, spdepth
 
 # def rgb2grayscale(rgb):
 #     return rgb[:,:,0] * 0.2989 + rgb[:,:,1] * 0.587 + rgb[:,:,2] * 0.114
@@ -85,9 +90,12 @@ class MyDataloader(data.Dataset):
             sparse_depth[mask_keep] = depth[mask_keep]
             return sparse_depth
 
-    def create_rgbd(self, rgb, depth):
-        sparse_depth = self.create_sparse_depth(rgb, depth)
-        rgbd = np.append(rgb, np.expand_dims(sparse_depth, axis=2), axis=2)
+    def create_rgbd(self, rgb, depth, spdepth_np):
+        # sparse_depth = self.create_sparse_depth(rgb, depth)
+        # print("sparse",sparse_depth.shape)
+        # print("rgb",rgb.shape)
+        # print("depth",depth.shape)
+        rgbd = np.append(rgb, np.expand_dims(spdepth_np, axis=2), axis=2)
         return rgbd
 
     def __getraw__(self, index):
@@ -99,13 +107,13 @@ class MyDataloader(data.Dataset):
             tuple: (rgb, depth) the raw data.
         """
         path, target = self.imgs[index]
-        rgb, depth = self.loader(path)
-        return rgb, depth
+        rgb, depth, spdepth = self.loader(path)
+        return rgb, depth, spdepth
 
     def __getitem__(self, index):
-        rgb, depth = self.__getraw__(index)
+        rgb, depth, spdepth = self.__getraw__(index)
         if self.transform is not None:
-            rgb_np, depth_np = self.transform(rgb, depth)
+            rgb_np, depth_np, spdepth_np = self.transform(rgb, depth, spdepth)
         else:
             raise(RuntimeError("transform not defined"))
 
@@ -116,7 +124,7 @@ class MyDataloader(data.Dataset):
         if self.modality == 'rgb':
             input_np = rgb_np
         elif self.modality == 'rgbd':
-            input_np = self.create_rgbd(rgb_np, depth_np)
+            input_np = self.create_rgbd(rgb_np, depth_np, spdepth_np)
         elif self.modality == 'd':
             input_np = self.create_sparse_depth(rgb_np, depth_np)
 
