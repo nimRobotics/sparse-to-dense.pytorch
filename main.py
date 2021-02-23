@@ -103,6 +103,7 @@ def main():
         print("=> loading checkpoint '{}'".format(chkpt_path))
         checkpoint = torch.load(chkpt_path)
         args = checkpoint['args']
+        args.epochs = 50
         start_epoch = checkpoint['epoch'] + 1
         best_result = checkpoint['best_result']
         model = checkpoint['model']
@@ -129,6 +130,7 @@ def main():
 
         # model = torch.nn.DataParallel(model).cuda() # for multi-gpu training
         model = model.cuda()
+        torch.cuda.empty_cache()
 
     # define loss function (criterion) and optimizer
     if args.criterion == 'l2':
@@ -217,6 +219,9 @@ def train(train_loader, model, criterion, optimizer, epoch):
                   'Lg10={result.lg10:.3f}({average.lg10:.3f}) '.format(
                   epoch, i+1, len(train_loader), data_time=data_time,
                   gpu_time=gpu_time, result=result, average=average_meter.average()))
+        
+        # del input, target, pred, loss, optimizer    
+        # torch.cuda.empty_cache()
 
     avg = average_meter.average()
     with open(train_csv, 'a') as csvfile:

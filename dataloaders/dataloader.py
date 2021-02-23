@@ -78,7 +78,7 @@ class MyDataloader(data.Dataset):
     def train_transform(self, rgb, depth):
         raise (RuntimeError("train_transform() is not implemented. "))
 
-    def val_transform(rgb, depth):
+    def val_transform(self, rgb, depth):
         raise (RuntimeError("val_transform() is not implemented."))
 
     def create_sparse_depth(self, rgb, depth):
@@ -112,6 +112,11 @@ class MyDataloader(data.Dataset):
 
     def __getitem__(self, index):
         rgb, depth, spdepth = self.__getraw__(index)
+        # rgb_np = rgb
+        # depth_np = depth
+        # spdepth_np = spdepth
+        # Potential Bug: check the 'transform' thing
+
         if self.transform is not None:
             rgb_np, depth_np, spdepth_np = self.transform(rgb, depth, spdepth)
         else:
